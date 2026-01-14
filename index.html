@@ -419,9 +419,11 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    const API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  const API_BASE =
+    location.hostname === "localhost" || location.hostname === "127.0.0.1"
       ? "http://localhost:5000"
       : "https://api.hassannetwork.com";
+
 
     const form = document.getElementById("quoteForm");
     const modal = document.getElementById("modal");
@@ -504,6 +506,7 @@
   </script>
 </body>
 </html>
+
 
 
 
