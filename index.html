@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HassanNetwork | Free Quote</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
@@ -50,6 +52,7 @@
       align-items:center;
       line-height:1;
       letter-spacing:.2px;
+      user-select:none;
     }
     .logo-h{color:#c62828}
     .logo-n{color:#ffffff}
@@ -196,7 +199,7 @@
       margin-top:4px;
       border:1px solid #e5e7eb;
       border-radius:14px;
-      padding:14px;
+      padding:12px 12px;
       background:#fafafa;
       color:#374151;
       font-size:10px;
@@ -284,6 +287,7 @@
       font-size:14px;
       color:#4b5563;
       line-height:1.45;
+      white-space:pre-line;
     }
 
     .modal-actions{
@@ -346,27 +350,27 @@
       </p>
 
       <div class="card" id="quote">
-        <form id="quoteForm">
+        <form id="quoteForm" novalidate>
           <div class="grid2">
             <div class="field">
-              <input type="text" name="first_name" placeholder="First Name" required>
+              <input type="text" name="first_name" placeholder="First Name" autocomplete="given-name" required>
               <label>First Name</label>
             </div>
 
             <div class="field">
-              <input type="text" name="last_name" placeholder="Last Name" required>
+              <input type="text" name="last_name" placeholder="Last Name" autocomplete="family-name" required>
               <label>Last Name</label>
             </div>
           </div>
 
           <div class="grid2">
             <div class="field">
-              <input type="email" name="email" placeholder="Email Address" required>
+              <input type="email" name="email" placeholder="Email Address" autocomplete="email" required>
               <label>Email Address</label>
             </div>
 
             <div class="field">
-              <input type="tel" name="phone" placeholder="Phone Number" required>
+              <input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" required>
               <label>Phone Number</label>
             </div>
           </div>
@@ -419,11 +423,10 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-  const API_BASE =
-    location.hostname === "localhost" || location.hostname === "127.0.0.1"
-      ? "http://localhost:5000"
-      : "https://api.hassannetwork.com";
-
+    const API_BASE =
+      location.hostname === "localhost" || location.hostname === "127.0.0.1"
+        ? "http://localhost:5000"
+        : "https://api.hassannetwork.com";
 
     const form = document.getElementById("quoteForm");
     const modal = document.getElementById("modal");
@@ -461,27 +464,43 @@
       btn.textContent = isSubmitting ? "Submitting..." : "Submit Request";
     }
 
+    function buildPayloadFromForm() {
+      const first_name = (form.first_name.value || "").trim();
+      const last_name = (form.last_name.value || "").trim();
+      const email = (form.email.value || "").trim();
+      const phone = (form.phone.value || "").trim();
+      const service = (form.service.value || "").trim();
+      const description = (form.description.value || "").trim();
+
+      return { first_name, last_name, email, phone, service, description };
+    }
+
+    function validatePayload(payload) {
+      if (!payload.first_name) return "First name is required.";
+      if (!payload.last_name) return "Last name is required.";
+      if (!payload.email) return "Email is required.";
+      if (!payload.phone) return "Phone number is required.";
+      if (!payload.service) return "Service needed is required.";
+      if (!payload.description) return "Description is required.";
+      return "";
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const payload = {
-        first_name: form.first_name.value.trim(),
-        last_name: form.last_name.value.trim(),
-        email: form.email.value.trim(),
-        phone: form.phone.value.trim(),
-        service: form.service.value.trim(),
-        description: form.description.value.trim()
-      };
+      const payload = buildPayloadFromForm();
+      const error = validatePayload(payload);
 
-      if (!payload.first_name || !payload.last_name || !payload.email || !payload.phone || !payload.service || !payload.description) {
-        openModal("Request Failed", "Please fill out all required fields.");
+      if (error) {
+        openModal("Request Failed", error);
         return;
       }
 
       setSubmitting(true);
 
       try {
-        const formData = new FormData(form);
+        const formData = new FormData();
+        Object.entries(payload).forEach(([k, v]) => formData.append(k, v));
 
         const res = await fetch(`${API_BASE}/api/free-quote`, {
           method: "POST",
@@ -506,6 +525,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
