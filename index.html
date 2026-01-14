@@ -199,8 +199,8 @@
       padding:14px;
       background:#fafafa;
       color:#374151;
-      font-size:13px;
-      line-height:1.55;
+      font-size:10px;
+      line-height:1.45;
     }
 
     .submit{
@@ -419,6 +419,10 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
+    const API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      ? "http://localhost:5000"
+      : "https://api.hassannetwork.com";
+
     const form = document.getElementById("quoteForm");
     const modal = document.getElementById("modal");
     const modalTitle = document.getElementById("modalTitle");
@@ -477,7 +481,7 @@
       try {
         const formData = new FormData(form);
 
-        const res = await fetch("http://localhost:5000/api/free-quote", {
+        const res = await fetch(`${API_BASE}/api/free-quote`, {
           method: "POST",
           body: formData
         });
@@ -485,14 +489,14 @@
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok || !data.success) {
-          openModal("Request Failed", "Could not submit your request. Please try again.");
+          openModal("Request Failed", data.error || "Could not submit your request. Please try again.");
           return;
         }
 
         form.reset();
         openModal("Request Submitted", "Request submitted! Check your email for confirmation.");
       } catch (err) {
-        openModal("Request Failed", "Server not reachable. Make sure server.js is running.");
+        openModal("Request Failed", "Server not reachable. Please try again.");
       } finally {
         setSubmitting(false);
       }
@@ -500,6 +504,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
