@@ -10,16 +10,16 @@
     el.textContent = text || "";
   };
 
+  const setStatus = (el, text, isSuccess) => {
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = isSuccess ? "#16a34a" : "";
+  };
+
   const setBtn = (btn, disabled, text) => {
     if (!btn) return;
     btn.disabled = !!disabled;
     if (typeof text === "string") btn.textContent = text;
-  };
-
-  const setStatus = (el, text, ok) => {
-    if (!el) return;
-    el.textContent = text || "";
-    el.style.color = ok ? "#16a34a" : "";
   };
 
   const ensureEmailJS = () => {
@@ -94,6 +94,24 @@
   const sendEmailJSForm = async (formEl) => {
     if (!window.emailjs) throw new Error("EmailJS not loaded");
     return await emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, formEl);
+  };
+
+  const showToast = (toastEl, titleEl, textEl, title, text) => {
+    if (!toastEl) return;
+    setText(titleEl, title);
+    setText(textEl, text);
+    toastEl.classList.add("show");
+    clearTimeout(toastEl.__hideTimer);
+    toastEl.__hideTimer = setTimeout(() => {
+      toastEl.classList.remove("show");
+    }, 4500);
+  };
+
+  const hideToast = (toastEl) => {
+    if (!toastEl) return;
+    toastEl.classList.remove("show");
+    clearTimeout(toastEl.__hideTimer);
+    toastEl.__hideTimer = null;
   };
 
   const init = () => {
@@ -277,6 +295,12 @@
     const plansForm = $("plansForm");
     const plansBtn = $("plansBtn");
     const plansStatus = $("plansStatus");
+    const plansToast = $("plansToast");
+    const plansToastTitle = $("plansToastTitle");
+    const plansToastText = $("plansToastText");
+    const plansToastClose = $("plansToastClose");
+
+    if (plansToastClose) plansToastClose.addEventListener("click", () => hideToast(plansToast));
 
     if (plansForm) {
       plansForm.addEventListener("submit", async (e) => {
@@ -284,6 +308,7 @@
         e.stopPropagation();
 
         setStatus(plansStatus, "", false);
+        hideToast(plansToast);
         setBtn(plansBtn, true, "Submitting...");
 
         const plan = (selectedPlan && String(selectedPlan.value || "").trim()) || "";
@@ -320,6 +345,7 @@
         } catch (err) {
           console.error("Plan booking send failed:", err);
           setStatus(plansStatus, "Could not submit. Please try again.", false);
+          showToast(plansToast, plansToastTitle, plansToastText, "Error", "Could not submit. Please try again.");
         } finally {
           setBtn(plansBtn, false, "Submit");
         }
@@ -329,6 +355,12 @@
     const quoteForm = $("quoteForm");
     const quoteBtn = $("quoteBtn");
     const quoteStatus = $("quoteStatus");
+    const quoteToast = $("quoteToast");
+    const quoteToastTitle = $("quoteToastTitle");
+    const quoteToastText = $("quoteToastText");
+    const quoteToastClose = $("quoteToastClose");
+
+    if (quoteToastClose) quoteToastClose.addEventListener("click", () => hideToast(quoteToast));
 
     if (quoteForm) {
       quoteForm.addEventListener("submit", async (e) => {
@@ -336,6 +368,7 @@
         e.stopPropagation();
 
         setStatus(quoteStatus, "", false);
+        hideToast(quoteToast);
         setBtn(quoteBtn, true, "Submitting...");
 
         if (!forceRequired(quoteForm)) {
@@ -371,6 +404,7 @@
         } catch (err) {
           console.error("Quote send failed:", err);
           setStatus(quoteStatus, "Could not submit. Please try again.", false);
+          showToast(quoteToast, quoteToastTitle, quoteToastText, "Error", "Could not submit. Please try again.");
         } finally {
           setBtn(quoteBtn, false, "Submit");
         }
@@ -474,6 +508,8 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
+
 
 
 
