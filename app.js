@@ -16,6 +16,12 @@
     if (typeof text === "string") btn.textContent = text;
   };
 
+  const setStatus = (el, text, ok) => {
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = ok ? "#16a34a" : "";
+  };
+
   const ensureEmailJS = () => {
     if (!window.emailjs) {
       console.error("EmailJS not found. Did you add the EmailJS script tag before app.js?");
@@ -239,17 +245,17 @@
     if (footerInquiryForm) {
       footerInquiryForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        setText(inqStatus, "");
+        setStatus(inqStatus, "", false);
         setBtn(inqBtn, true, "Sending...");
 
         if (!forceRequired(footerInquiryForm)) {
-          setText(inqStatus, "Please fill out all required fields.");
+          setStatus(inqStatus, "Please fill out all required fields.", false);
           setBtn(inqBtn, false, "Send");
           return;
         }
 
         if (!emailOk) {
-          setText(inqStatus, "Email service is not ready. Check console for EmailJS script/init errors.");
+          setStatus(inqStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
           setBtn(inqBtn, false, "Send");
           return;
         }
@@ -258,10 +264,10 @@
           const res = await sendEmailJSForm(footerInquiryForm);
           console.log("Inquiry sent:", res);
           footerInquiryForm.reset();
-          setText(inqStatus, "Sent. We’ll reach out shortly.");
+          setStatus(inqStatus, "Sent. We’ll reach out shortly.", true);
         } catch (err) {
           console.error("Inquiry send failed:", err);
-          setText(inqStatus, "Could not send. Please try again.");
+          setStatus(inqStatus, "Could not send. Please try again.", false);
         } finally {
           setBtn(inqBtn, false, "Send");
         }
@@ -275,24 +281,26 @@
     if (plansForm) {
       plansForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        setText(plansStatus, "");
+        e.stopPropagation();
+
+        setStatus(plansStatus, "", false);
         setBtn(plansBtn, true, "Submitting...");
 
         const plan = (selectedPlan && String(selectedPlan.value || "").trim()) || "";
         if (!plan) {
-          setText(plansStatus, "Please select a plan.");
+          setStatus(plansStatus, "Please select a plan.", false);
           setBtn(plansBtn, false, "Submit");
           return;
         }
 
         if (!forceRequired(plansForm)) {
-          setText(plansStatus, "Please fill out all required fields.");
+          setStatus(plansStatus, "Please fill out all required fields.", false);
           setBtn(plansBtn, false, "Submit");
           return;
         }
 
         if (!emailOk) {
-          setText(plansStatus, "Email service is not ready. Check console for EmailJS script/init errors.");
+          setStatus(plansStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
           setBtn(plansBtn, false, "Submit");
           return;
         }
@@ -306,11 +314,12 @@
           if (selectedPlan) selectedPlan.value = "";
           if (selectedPlanPrice) selectedPlanPrice.value = "";
 
-          setText(plansStatus, "Submitted. We’ll reach out shortly.");
-          closeOverlay(plansOverlay);
+          setStatus(plansStatus, "Submitted Successfully, We’ll reach out shortly.", true);
+          const mb = plansOverlay ? plansOverlay.querySelector(".modalBody") : null;
+          if (mb) mb.scrollTo({ top: mb.scrollTop, behavior: "smooth" });
         } catch (err) {
           console.error("Plan booking send failed:", err);
-          setText(plansStatus, "Could not submit. Please try again.");
+          setStatus(plansStatus, "Could not submit. Please try again.", false);
         } finally {
           setBtn(plansBtn, false, "Submit");
         }
@@ -324,24 +333,26 @@
     if (quoteForm) {
       quoteForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        setText(quoteStatus, "");
+        e.stopPropagation();
+
+        setStatus(quoteStatus, "", false);
         setBtn(quoteBtn, true, "Submitting...");
 
         if (!forceRequired(quoteForm)) {
-          setText(quoteStatus, "Please fill out all required fields.");
+          setStatus(quoteStatus, "Please fill out all required fields.", false);
           setBtn(quoteBtn, false, "Submit");
           return;
         }
 
         const selected = syncSelectedFeatures();
         if (!selected.length) {
-          setText(quoteStatus, "Please select at least 1 feature.");
+          setStatus(quoteStatus, "Please select at least 1 feature.", false);
           setBtn(quoteBtn, false, "Submit");
           return;
         }
 
         if (!emailOk) {
-          setText(quoteStatus, "Email service is not ready. Check console for EmailJS script/init errors.");
+          setStatus(quoteStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
           setBtn(quoteBtn, false, "Submit");
           return;
         }
@@ -354,14 +365,94 @@
           features.forEach((f) => f.classList.remove("selected"));
           if (selectedFeatures) selectedFeatures.value = "";
 
-          setText(quoteStatus, "Submitted. We’ll reach out shortly.");
-          closeOverlay(quoteOverlay);
+          setStatus(quoteStatus, "Submitted Successfully, We’ll reach out shortly.", true);
+          const mb = quoteOverlay ? quoteOverlay.querySelector(".modalBody") : null;
+          if (mb) mb.scrollTo({ top: mb.scrollTop, behavior: "smooth" });
         } catch (err) {
           console.error("Quote send failed:", err);
-          setText(quoteStatus, "Could not submit. Please try again.");
+          setStatus(quoteStatus, "Could not submit. Please try again.", false);
         } finally {
           setBtn(quoteBtn, false, "Submit");
         }
+      });
+    }
+
+    const templatesGrid = $("templatesGrid");
+    const lightbox = $("lightbox");
+    const lbImg = $("lbImg");
+    const lbClose = $("lbClose");
+    const lbPrev = $("lbPrev");
+    const lbNext = $("lbNext");
+
+    let galleryItems = [];
+    let currentIndex = -1;
+
+    const getImgSrcFromCard = (card) => {
+      const img = card.querySelector("img");
+      if (img && img.getAttribute("src")) return img.getAttribute("src");
+      const bg = card.querySelector(".img");
+      if (bg) {
+        const s = window.getComputedStyle(bg).backgroundImage || "";
+        const m = s.match(/url\(["']?(.*?)["']?\)/i);
+        if (m && m[1]) return m[1];
+      }
+      return "";
+    };
+
+    const openLightboxAt = (idx) => {
+      if (!lightbox || !lbImg) return;
+      if (idx < 0 || idx >= galleryItems.length) return;
+      currentIndex = idx;
+      const src = getImgSrcFromCard(galleryItems[currentIndex]);
+      if (!src) return;
+      lbImg.setAttribute("src", src);
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+
+    const closeLightbox = () => {
+      if (!lightbox) return;
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lbImg) lbImg.setAttribute("src", "");
+      currentIndex = -1;
+    };
+
+    const stepLightbox = (dir) => {
+      if (!galleryItems.length) return;
+      const next = (currentIndex + dir + galleryItems.length) % galleryItems.length;
+      openLightboxAt(next);
+    };
+
+    if (templatesGrid && lightbox) {
+      galleryItems = Array.from(templatesGrid.querySelectorAll(".tcard, .gcard"));
+      galleryItems.forEach((card, idx) => {
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.addEventListener("click", () => openLightboxAt(idx));
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openLightboxAt(idx);
+          }
+        });
+      });
+
+      if (lbClose) lbClose.addEventListener("click", closeLightbox);
+      if (lbPrev) lbPrev.addEventListener("click", () => stepLightbox(-1));
+      if (lbNext) lbNext.addEventListener("click", () => stepLightbox(1));
+
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (!lightbox.classList.contains("open")) return;
+        if (e.key === "Escape") closeLightbox();
+        if (e.key === "ArrowLeft") stepLightbox(-1);
+        if (e.key === "ArrowRight") stepLightbox(1);
       });
     }
 
@@ -383,5 +474,7 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
+
 
 
