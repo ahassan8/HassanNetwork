@@ -720,3 +720,12 @@ main{background:#fff}
   }
 }
 
+#plansOverlay .modalBody > button,
+#quoteOverlay .modalBody > button,
+#plansOverlay .modalBody > .xbtn,
+#quoteOverlay .modalBody > .xbtn{
+  display:none !important;
+}
+
+
+
