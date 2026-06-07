@@ -3,6 +3,12 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const templatePhotos = {
+    template1: ["Herotemp.png", "paintingtemp.png", "painttemp2.png"],
+    template2: ["paintingtemp.png", "painttemp2.png", "Herotemp.png"],
+    template3: ["painttemp2.png", "Herotemp.png", "paintingtemp.png"]
+  };
+
   const setStatus = (el, text, isSuccess) => {
     if (!el) return;
     el.textContent = text || "";
@@ -81,9 +87,122 @@
       if (!target) return;
 
       event.preventDefault();
-
       closeMobileNav();
       scrollToId(id);
+    });
+  });
+
+  const slideshow = document.createElement("div");
+  slideshow.className = "template-lightbox";
+  slideshow.innerHTML = `
+    <div class="template-lightbox-backdrop"></div>
+    <div class="template-lightbox-box">
+      <button class="template-lightbox-close" type="button">×</button>
+      <button class="template-lightbox-arrow template-lightbox-prev" type="button">‹</button>
+      <img class="template-lightbox-img" src="" alt="Template preview">
+      <button class="template-lightbox-arrow template-lightbox-next" type="button">›</button>
+    </div>
+  `;
+
+  document.body.appendChild(slideshow);
+
+  const slideshowImg = slideshow.querySelector(".template-lightbox-img");
+  const slideshowClose = slideshow.querySelector(".template-lightbox-close");
+  const slideshowPrev = slideshow.querySelector(".template-lightbox-prev");
+  const slideshowNext = slideshow.querySelector(".template-lightbox-next");
+  const slideshowBackdrop = slideshow.querySelector(".template-lightbox-backdrop");
+
+  let currentSlides = [];
+  let currentSlideIndex = 0;
+
+  function showSlide() {
+    if (!slideshowImg || !currentSlides.length) return;
+    slideshowImg.src = currentSlides[currentSlideIndex];
+  }
+
+  function openSlideshow(images, startIndex = 0) {
+    if (!images || !images.length) return;
+
+    currentSlides = images;
+    currentSlideIndex = startIndex;
+    showSlide();
+
+    slideshow.classList.add("open");
+    document.body.classList.add("lightbox-open");
+  }
+
+  function closeSlideshow() {
+    slideshow.classList.remove("open");
+    document.body.classList.remove("lightbox-open");
+  }
+
+  function nextSlide() {
+    if (!currentSlides.length) return;
+    currentSlideIndex = (currentSlideIndex + 1) % currentSlides.length;
+    showSlide();
+  }
+
+  function prevSlide() {
+    if (!currentSlides.length) return;
+    currentSlideIndex =
+      (currentSlideIndex - 1 + currentSlides.length) % currentSlides.length;
+    showSlide();
+  }
+
+  if (slideshowClose) slideshowClose.addEventListener("click", closeSlideshow);
+  if (slideshowBackdrop) slideshowBackdrop.addEventListener("click", closeSlideshow);
+  if (slideshowNext) slideshowNext.addEventListener("click", nextSlide);
+  if (slideshowPrev) slideshowPrev.addEventListener("click", prevSlide);
+
+  document.addEventListener("keydown", (event) => {
+    if (!slideshow.classList.contains("open")) return;
+
+    if (event.key === "Escape") closeSlideshow();
+    if (event.key === "ArrowRight") nextSlide();
+    if (event.key === "ArrowLeft") prevSlide();
+  });
+
+  function getTemplateKey(el) {
+    const card = el.closest("[data-template]");
+    const value =
+      el.dataset.template ||
+      el.dataset.templateKey ||
+      (card ? card.dataset.template : "") ||
+      "";
+
+    if (templatePhotos[value]) return value;
+
+    const text = (el.textContent || "").toLowerCase();
+
+    if (text.includes("1")) return "template1";
+    if (text.includes("2")) return "template2";
+    if (text.includes("3")) return "template3";
+
+    const index = Array.from(document.querySelectorAll(".template-card, [data-template]")).indexOf(card);
+
+    if (index === 0) return "template1";
+    if (index === 1) return "template2";
+    if (index === 2) return "template3";
+
+    return "template1";
+  }
+
+  document.querySelectorAll(".template-more, .more-photos, [data-more-photos]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const key = getTemplateKey(button);
+      openSlideshow(templatePhotos[key], 0);
+    });
+  });
+
+  document.querySelectorAll(".template-card img, .template-preview img, [data-template-image]").forEach((img) => {
+    img.style.cursor = "pointer";
+
+    img.addEventListener("click", () => {
+      const key = getTemplateKey(img);
+      const images = templatePhotos[key];
+      const index = images.findIndex((src) => img.src.includes(src));
+
+      openSlideshow(images, index >= 0 ? index : 0);
     });
   });
 
@@ -100,6 +219,79 @@
     const baseName = dotIndex !== -1 ? name.slice(0, dotIndex) : name;
 
     return `${baseName.slice(0, 22)}...${extension}`;
+  }
+
+  function fileToImage(file) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("Image failed to load"));
+      };
+
+      image.src = url;
+    });
+  }
+
+  async function compressImage(file) {
+    if (!file.type.startsWith("image/")) return file;
+
+    const image = await fileToImage(file);
+
+    const maxWidth = 1400;
+    const maxHeight = 1400;
+
+    let width = image.width;
+    let height = image.height;
+
+    if (width > maxWidth || height > maxHeight) {
+      const ratio = Math.min(maxWidth / width, maxHeight / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.72);
+    });
+
+    if (!blob) return file;
+
+    const cleanName = file.name.replace(/\.[^.]+$/, "");
+    const compressedName = `${cleanName}.jpg`;
+
+    return new File([blob], compressedName, {
+      type: "image/jpeg",
+      lastModified: Date.now()
+    });
+  }
+
+  async function compressFiles(files) {
+    const compressed = [];
+
+    for (const file of files) {
+      try {
+        const newFile = await compressImage(file);
+        compressed.push(newFile);
+      } catch (error) {
+        compressed.push(file);
+      }
+    }
+
+    return compressed;
   }
 
   function updateGalleryInputFiles() {
@@ -132,24 +324,25 @@
       name.textContent = shortenFileName(file.name);
       name.title = file.name;
 
+      const size = document.createElement("span");
+      size.className = "uploaded-file-size";
+      size.textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB`;
+
       const deleteButton = document.createElement("button");
       deleteButton.className = "uploaded-file-delete";
       deleteButton.type = "button";
-      deleteButton.setAttribute(
-        "aria-label",
-        `Remove ${file.name}`
-      );
+      deleteButton.setAttribute("aria-label", `Remove ${file.name}`);
       deleteButton.textContent = "🗑";
 
       deleteButton.addEventListener("click", () => {
         selectedGalleryFiles.splice(index, 1);
-
         updateGalleryInputFiles();
         renderUploadedFiles();
       });
 
       item.appendChild(icon);
       item.appendChild(name);
+      item.appendChild(size);
       item.appendChild(deleteButton);
 
       galleryPhotosPreview.appendChild(item);
@@ -157,16 +350,18 @@
   }
 
   if (galleryPhotosInput && galleryPhotosPreview) {
-    galleryPhotosInput.addEventListener("change", () => {
+    galleryPhotosInput.addEventListener("change", async () => {
       const newFiles = Array.from(galleryPhotosInput.files);
 
-      newFiles.forEach((file) => {
+      if (!newFiles.length) return;
+
+      galleryPhotosPreview.innerHTML = "Compressing photos...";
+
+      const compressedFiles = await compressFiles(newFiles);
+
+      compressedFiles.forEach((file) => {
         const alreadyAdded = selectedGalleryFiles.some((existingFile) => {
-          return (
-            existingFile.name === file.name &&
-            existingFile.size === file.size &&
-            existingFile.lastModified === file.lastModified
-          );
+          return existingFile.name === file.name && existingFile.size === file.size;
         });
 
         if (!alreadyAdded) {
@@ -186,7 +381,6 @@
 
   function showPricesArea() {
     if (!pricesArea) return;
-
     pricesArea.classList.add("open");
   }
 
@@ -212,17 +406,13 @@
 
   if (pricesYes) {
     pricesYes.addEventListener("change", () => {
-      if (pricesYes.checked) {
-        showPricesArea();
-      }
+      if (pricesYes.checked) showPricesArea();
     });
   }
 
   if (pricesNo) {
     pricesNo.addEventListener("change", () => {
-      if (pricesNo.checked) {
-        hidePricesArea();
-      }
+      if (pricesNo.checked) hidePricesArea();
     });
   }
 
@@ -275,13 +465,10 @@
       const formData = new FormData(websiteApplicationForm);
 
       try {
-        const response = await fetch(
-          `${API_BASE}/api/website-application`,
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+        const response = await fetch(`${API_BASE}/api/website-application`, {
+          method: "POST",
+          body: formData
+        });
 
         const result = await response.json();
 
@@ -293,7 +480,6 @@
           "Application submitted successfully. We will contact you within 24 hours.";
 
         websiteApplicationForm.reset();
-
         selectedGalleryFiles = [];
 
         if (galleryPhotosPreview) {
@@ -327,13 +513,10 @@
       const formData = new FormData(footerInquiryForm);
 
       try {
-        const response = await fetch(
-          `${API_BASE}/api/footer-inquiry`,
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+        const response = await fetch(`${API_BASE}/api/footer-inquiry`, {
+          method: "POST",
+          body: formData
+        });
 
         const result = await response.json();
 
@@ -343,17 +526,9 @@
 
         footerInquiryForm.reset();
 
-        setStatus(
-          inqStatus,
-          "Sent. We will reach out shortly.",
-          true
-        );
+        setStatus(inqStatus, "Sent. We will reach out shortly.", true);
       } catch (error) {
-        setStatus(
-          inqStatus,
-          "Could not send. Please try again.",
-          false
-        );
+        setStatus(inqStatus, "Could not send. Please try again.", false);
       } finally {
         setBtn(inqBtn, false, "Send");
       }
