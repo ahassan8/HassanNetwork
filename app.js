@@ -5,9 +5,9 @@
 
 const templatePhotos = {
   template1: [
-    "images/Herotemp.png",
-    "images/Herotemp.png",
-    "images/Herotemp.png"
+    "images/herotemp.png",
+    "images/herotemp.png",
+    "images/herotemp.png"
   ],
 
   template2: [
