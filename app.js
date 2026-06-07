@@ -1,14 +1,5 @@
 (() => {
-  const EMAILJS_SERVICE_ID = "service_h7qiq8i";
-  const EMAILJS_TEMPLATE_ID = "template_l1o0unm";
-  const EMAILJS_PUBLIC_KEY = "aoGFP5Q0wIP69OaGx";
-
   const $ = (id) => document.getElementById(id);
-
-  const setText = (el, text) => {
-    if (!el) return;
-    el.textContent = text || "";
-  };
 
   const setStatus = (el, text, isSuccess) => {
     if (!el) return;
@@ -22,493 +13,371 @@
     if (typeof text === "string") btn.textContent = text;
   };
 
-  const ensureEmailJS = () => {
-    if (!window.emailjs) {
-      console.error("EmailJS not found. Did you add the EmailJS script tag before app.js?");
-      return false;
-    }
-    try {
-      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-      return true;
-    } catch (e) {
-      console.error("EmailJS init failed:", e);
-      return false;
-    }
-  };
+  const yearEl = $("year");
 
-  const forceRequired = (formEl) => {
-    if (!formEl) return false;
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
 
-    const required = Array.from(formEl.querySelectorAll("[required]"));
-    for (const el of required) {
-      const type = (el.getAttribute("type") || "").toLowerCase();
+  const burger = $("burger");
+  const navlinks = $("navlinks");
 
-      if (type === "checkbox" && !el.checked) {
-        el.focus();
-        return false;
-      }
+  if (burger && navlinks) {
+    burger.addEventListener("click", () => {
+      const open = navlinks.classList.toggle("open");
+      burger.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
 
-      if (type === "radio") {
-        const name = el.getAttribute("name");
-        if (!name) continue;
-        const checked = formEl.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
-        if (!checked) {
-          el.focus();
-          return false;
-        }
-        continue;
-      }
+  function closeMobileNav() {
+    if (!navlinks) return;
 
-      const val = (el.value || "").trim();
-      if (!val) {
-        el.focus();
-        return false;
-      }
+    if (navlinks.classList.contains("open")) {
+      navlinks.classList.remove("open");
 
-      if (type === "email") {
-        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-        if (!ok) {
-          el.focus();
-          return false;
-        }
+      if (burger) {
+        burger.setAttribute("aria-expanded", "false");
       }
     }
+  }
 
-    return true;
-  };
+  function anchorOffset() {
+    const header = document.querySelector(".header");
+    const topbar = document.querySelector(".topbar");
 
-  const openOverlay = (overlay) => {
-    if (!overlay) return;
-    overlay.classList.add("open");
-    overlay.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-  };
+    const headerHeight = header ? header.getBoundingClientRect().height : 0;
+    const topbarHeight = topbar ? topbar.getBoundingClientRect().height : 0;
 
-  const closeOverlay = (overlay) => {
-    if (!overlay) return;
-    overlay.classList.remove("open");
-    overlay.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
-  };
+    return Math.round(headerHeight + topbarHeight + 16);
+  }
 
-  const sendEmailJSForm = async (formEl) => {
-    if (!window.emailjs) throw new Error("EmailJS not loaded");
-    return await emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, formEl);
-  };
+  function scrollToId(id) {
+    const el = document.getElementById(id);
 
-  const showToast = (toastEl, titleEl, textEl, title, text) => {
-    if (!toastEl) return;
-    setText(titleEl, title);
-    setText(textEl, text);
-    toastEl.classList.add("show");
-    clearTimeout(toastEl.__hideTimer);
-    toastEl.__hideTimer = setTimeout(() => {
-      toastEl.classList.remove("show");
-    }, 4500);
-  };
+    if (!el) return;
 
-  const hideToast = (toastEl) => {
-    if (!toastEl) return;
-    toastEl.classList.remove("show");
-    clearTimeout(toastEl.__hideTimer);
-    toastEl.__hideTimer = null;
-  };
+    const top =
+      window.pageYOffset +
+      el.getBoundingClientRect().top -
+      anchorOffset();
 
-  const init = () => {
-    const yearEl = $("year");
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: "smooth"
+    });
+  }
 
-    const emailOk = ensureEmailJS();
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href") || "";
 
-    const burger = $("burger");
-    const navlinks = $("navlinks");
+      if (href.length < 2) return;
 
-    if (burger && navlinks) {
-      burger.addEventListener("click", () => {
-        const open = navlinks.classList.toggle("open");
-        burger.setAttribute("aria-expanded", open ? "true" : "false");
-      });
-    }
+      const id = href.slice(1);
+      const target = document.getElementById(id);
 
-    const closeMobileNavIfOpen = () => {
-      if (!navlinks) return;
-      if (navlinks.classList.contains("open")) {
-        navlinks.classList.remove("open");
-        if (burger) burger.setAttribute("aria-expanded", "false");
-      }
-    };
+      if (!target) return;
 
-    const anchorOffset = () => {
-      const header = document.querySelector(".header");
-      const topbar = document.querySelector(".topbar");
-      const h = header ? header.getBoundingClientRect().height : 0;
-      const t = topbar ? topbar.getBoundingClientRect().height : 0;
-      return Math.round(h + t + 16);
-    };
+      event.preventDefault();
 
-    const scrollToId = (id) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const top = window.pageYOffset + el.getBoundingClientRect().top - anchorOffset();
-      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    };
+      closeMobileNav();
+      scrollToId(id);
+    });
+  });
 
-    document.querySelectorAll('a[href^="#"]').forEach((a) => {
-      a.addEventListener("click", (e) => {
-        const href = a.getAttribute("href") || "";
-        if (href.length < 2) return;
-        const id = href.slice(1);
-        const target = document.getElementById(id);
-        if (!target) return;
-        e.preventDefault();
-        closeMobileNavIfOpen();
-        scrollToId(id);
-      });
+  const galleryPhotosInput = $("galleryPhotos");
+  const galleryPhotosPreview = $("galleryPhotosPreview");
+
+  let selectedGalleryFiles = [];
+
+  function shortenFileName(name) {
+    if (name.length <= 30) return name;
+
+    const dotIndex = name.lastIndexOf(".");
+    const extension = dotIndex !== -1 ? name.slice(dotIndex) : "";
+    const baseName = dotIndex !== -1 ? name.slice(0, dotIndex) : name;
+
+    return `${baseName.slice(0, 22)}...${extension}`;
+  }
+
+  function updateGalleryInputFiles() {
+    if (!galleryPhotosInput) return;
+
+    const dataTransfer = new DataTransfer();
+
+    selectedGalleryFiles.forEach((file) => {
+      dataTransfer.items.add(file);
     });
 
-    const plansOverlay = $("plansOverlay");
-    const quoteOverlay = $("quoteOverlay");
+    galleryPhotosInput.files = dataTransfer.files;
+  }
 
-    const bindOpen = (el, overlay, isLink) => {
-      if (!el || !overlay) return;
-      el.addEventListener("click", (e) => {
-        if (isLink) e.preventDefault();
-        openOverlay(overlay);
+  function renderUploadedFiles() {
+    if (!galleryPhotosPreview) return;
+
+    galleryPhotosPreview.innerHTML = "";
+
+    selectedGalleryFiles.forEach((file, index) => {
+      const item = document.createElement("div");
+      item.className = "uploaded-file-item";
+
+      const icon = document.createElement("span");
+      icon.className = "uploaded-file-icon";
+      icon.textContent = "▣";
+
+      const name = document.createElement("span");
+      name.className = "uploaded-file-name";
+      name.textContent = shortenFileName(file.name);
+      name.title = file.name;
+
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "uploaded-file-delete";
+      deleteButton.type = "button";
+      deleteButton.setAttribute(
+        "aria-label",
+        `Remove ${file.name}`
+      );
+      deleteButton.textContent = "🗑";
+
+      deleteButton.addEventListener("click", () => {
+        selectedGalleryFiles.splice(index, 1);
+
+        updateGalleryInputFiles();
+        renderUploadedFiles();
       });
-    };
 
-    bindOpen($("openPlansNav"), plansOverlay);
-    bindOpen($("openPlansHero"), plansOverlay);
-    bindOpen($("openPlansFooter"), plansOverlay, true);
+      item.appendChild(icon);
+      item.appendChild(name);
+      item.appendChild(deleteButton);
 
-    bindOpen($("openQuoteTop"), quoteOverlay);
-    bindOpen($("openQuoteFooter"), quoteOverlay, true);
-
-    const closePlans = $("closePlans");
-    const closeQuote = $("closeQuote");
-
-    if (closePlans) closePlans.addEventListener("click", () => closeOverlay(plansOverlay));
-    if (closeQuote) closeQuote.addEventListener("click", () => closeOverlay(quoteOverlay));
-
-    if (plansOverlay) {
-      plansOverlay.addEventListener("click", (e) => {
-        if (e.target === plansOverlay) closeOverlay(plansOverlay);
-      });
-    }
-
-    if (quoteOverlay) {
-      quoteOverlay.addEventListener("click", (e) => {
-        if (e.target === quoteOverlay) closeOverlay(quoteOverlay);
-      });
-    }
-
-    window.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      if (plansOverlay && plansOverlay.classList.contains("open")) closeOverlay(plansOverlay);
-      if (quoteOverlay && quoteOverlay.classList.contains("open")) closeOverlay(quoteOverlay);
+      galleryPhotosPreview.appendChild(item);
     });
+  }
 
-    const planBtns = Array.from(document.querySelectorAll("[data-plan-open]"));
-    const planPicks = Array.from(document.querySelectorAll(".planPick"));
-    const selectedPlan = $("selectedPlan");
-    const selectedPlanPrice = $("selectedPlanPrice");
+  if (galleryPhotosInput && galleryPhotosPreview) {
+    galleryPhotosInput.addEventListener("change", () => {
+      const newFiles = Array.from(galleryPhotosInput.files);
 
-    const clearPlanSelected = () => planPicks.forEach((b) => b.classList.remove("selected"));
-
-    const selectPlan = (name) => {
-      const match = planPicks.find((p) => (p.dataset.plan || "") === name);
-      if (!match) return false;
-      clearPlanSelected();
-      match.classList.add("selected");
-      if (selectedPlan) selectedPlan.value = match.dataset.plan || "";
-      if (selectedPlanPrice) selectedPlanPrice.value = match.dataset.price || "";
-      return true;
-    };
-
-    planBtns.forEach((b) => {
-      b.addEventListener("click", () => {
-        openOverlay(plansOverlay);
-        selectPlan(b.getAttribute("data-plan-open") || "");
-      });
-    });
-
-    planPicks.forEach((btn) => {
-      btn.addEventListener("click", () => selectPlan(btn.dataset.plan || ""));
-    });
-
-    const features = Array.from(document.querySelectorAll(".feat"));
-    const selectedFeatures = $("selectedFeatures");
-
-    const syncSelectedFeatures = () => {
-      const selected = features
-        .filter((f) => f.classList.contains("selected"))
-        .map((f) => f.dataset.feature || "")
-        .filter(Boolean);
-
-      if (selectedFeatures) selectedFeatures.value = selected.join(", ");
-      return selected;
-    };
-
-    features.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        btn.classList.toggle("selected");
-        syncSelectedFeatures();
-      });
-    });
-
-    const footerInquiryForm = $("footerInquiryForm");
-    const inqBtn = $("inqBtn");
-    const inqStatus = $("inqStatus");
-
-    if (footerInquiryForm) {
-      footerInquiryForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        setStatus(inqStatus, "", false);
-        setBtn(inqBtn, true, "Sending...");
-
-        if (!forceRequired(footerInquiryForm)) {
-          setStatus(inqStatus, "Please fill out all required fields.", false);
-          setBtn(inqBtn, false, "Send");
-          return;
-        }
-
-        if (!emailOk) {
-          setStatus(inqStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
-          setBtn(inqBtn, false, "Send");
-          return;
-        }
-
-        try {
-          const res = await sendEmailJSForm(footerInquiryForm);
-          console.log("Inquiry sent:", res);
-          footerInquiryForm.reset();
-          setStatus(inqStatus, "Sent. We’ll reach out shortly.", true);
-        } catch (err) {
-          console.error("Inquiry send failed:", err);
-          setStatus(inqStatus, "Could not send. Please try again.", false);
-        } finally {
-          setBtn(inqBtn, false, "Send");
-        }
-      });
-    }
-
-    const plansForm = $("plansForm");
-    const plansBtn = $("plansBtn");
-    const plansStatus = $("plansStatus");
-    const plansToast = $("plansToast");
-    const plansToastTitle = $("plansToastTitle");
-    const plansToastText = $("plansToastText");
-    const plansToastClose = $("plansToastClose");
-
-    if (plansToastClose) plansToastClose.addEventListener("click", () => hideToast(plansToast));
-
-    if (plansForm) {
-      plansForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setStatus(plansStatus, "", false);
-        hideToast(plansToast);
-        setBtn(plansBtn, true, "Submitting...");
-
-        const plan = (selectedPlan && String(selectedPlan.value || "").trim()) || "";
-        if (!plan) {
-          setStatus(plansStatus, "Please select a plan.", false);
-          setBtn(plansBtn, false, "Submit");
-          return;
-        }
-
-        if (!forceRequired(plansForm)) {
-          setStatus(plansStatus, "Please fill out all required fields.", false);
-          setBtn(plansBtn, false, "Submit");
-          return;
-        }
-
-        if (!emailOk) {
-          setStatus(plansStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
-          setBtn(plansBtn, false, "Submit");
-          return;
-        }
-
-        try {
-          const res = await sendEmailJSForm(plansForm);
-          console.log("Plan booking sent:", res);
-
-          plansForm.reset();
-          clearPlanSelected();
-          if (selectedPlan) selectedPlan.value = "";
-          if (selectedPlanPrice) selectedPlanPrice.value = "";
-
-          setStatus(plansStatus, "Submitted Successfully, We’ll reach out shortly.", true);
-          const mb = plansOverlay ? plansOverlay.querySelector(".modalBody") : null;
-          if (mb) mb.scrollTo({ top: mb.scrollTop, behavior: "smooth" });
-        } catch (err) {
-          console.error("Plan booking send failed:", err);
-          setStatus(plansStatus, "Could not submit. Please try again.", false);
-          showToast(plansToast, plansToastTitle, plansToastText, "Error", "Could not submit. Please try again.");
-        } finally {
-          setBtn(plansBtn, false, "Submit");
-        }
-      });
-    }
-
-    const quoteForm = $("quoteForm");
-    const quoteBtn = $("quoteBtn");
-    const quoteStatus = $("quoteStatus");
-    const quoteToast = $("quoteToast");
-    const quoteToastTitle = $("quoteToastTitle");
-    const quoteToastText = $("quoteToastText");
-    const quoteToastClose = $("quoteToastClose");
-
-    if (quoteToastClose) quoteToastClose.addEventListener("click", () => hideToast(quoteToast));
-
-    if (quoteForm) {
-      quoteForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        setStatus(quoteStatus, "", false);
-        hideToast(quoteToast);
-        setBtn(quoteBtn, true, "Submitting...");
-
-        if (!forceRequired(quoteForm)) {
-          setStatus(quoteStatus, "Please fill out all required fields.", false);
-          setBtn(quoteBtn, false, "Submit");
-          return;
-        }
-
-        const selected = syncSelectedFeatures();
-        if (!selected.length) {
-          setStatus(quoteStatus, "Please select at least 1 feature.", false);
-          setBtn(quoteBtn, false, "Submit");
-          return;
-        }
-
-        if (!emailOk) {
-          setStatus(quoteStatus, "Email service is not ready. Check console for EmailJS script/init errors.", false);
-          setBtn(quoteBtn, false, "Submit");
-          return;
-        }
-
-        try {
-          const res = await sendEmailJSForm(quoteForm);
-          console.log("Quote request sent:", res);
-
-          quoteForm.reset();
-          features.forEach((f) => f.classList.remove("selected"));
-          if (selectedFeatures) selectedFeatures.value = "";
-
-          setStatus(quoteStatus, "Submitted Successfully, We’ll reach out shortly.", true);
-          const mb = quoteOverlay ? quoteOverlay.querySelector(".modalBody") : null;
-          if (mb) mb.scrollTo({ top: mb.scrollTop, behavior: "smooth" });
-        } catch (err) {
-          console.error("Quote send failed:", err);
-          setStatus(quoteStatus, "Could not submit. Please try again.", false);
-          showToast(quoteToast, quoteToastTitle, quoteToastText, "Error", "Could not submit. Please try again.");
-        } finally {
-          setBtn(quoteBtn, false, "Submit");
-        }
-      });
-    }
-
-    const templatesGrid = $("templatesGrid");
-    const lightbox = $("lightbox");
-    const lbImg = $("lbImg");
-    const lbClose = $("lbClose");
-    const lbPrev = $("lbPrev");
-    const lbNext = $("lbNext");
-
-    let galleryItems = [];
-    let currentIndex = -1;
-
-    const getImgSrcFromCard = (card) => {
-      const img = card.querySelector("img");
-      if (img && img.getAttribute("src")) return img.getAttribute("src");
-      const bg = card.querySelector(".img");
-      if (bg) {
-        const s = window.getComputedStyle(bg).backgroundImage || "";
-        const m = s.match(/url\(["']?(.*?)["']?\)/i);
-        if (m && m[1]) return m[1];
-      }
-      return "";
-    };
-
-    const openLightboxAt = (idx) => {
-      if (!lightbox || !lbImg) return;
-      if (idx < 0 || idx >= galleryItems.length) return;
-      currentIndex = idx;
-      const src = getImgSrcFromCard(galleryItems[currentIndex]);
-      if (!src) return;
-      lbImg.setAttribute("src", src);
-      lightbox.classList.add("open");
-      lightbox.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
-    };
-
-    const closeLightbox = () => {
-      if (!lightbox) return;
-      lightbox.classList.remove("open");
-      lightbox.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
-      if (lbImg) lbImg.setAttribute("src", "");
-      currentIndex = -1;
-    };
-
-    const stepLightbox = (dir) => {
-      if (!galleryItems.length) return;
-      const next = (currentIndex + dir + galleryItems.length) % galleryItems.length;
-      openLightboxAt(next);
-    };
-
-    if (templatesGrid && lightbox) {
-      galleryItems = Array.from(templatesGrid.querySelectorAll(".tcard, .gcard"));
-      galleryItems.forEach((card, idx) => {
-        card.setAttribute("role", "button");
-        card.setAttribute("tabindex", "0");
-        card.addEventListener("click", () => openLightboxAt(idx));
-        card.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openLightboxAt(idx);
-          }
+      newFiles.forEach((file) => {
+        const alreadyAdded = selectedGalleryFiles.some((existingFile) => {
+          return (
+            existingFile.name === file.name &&
+            existingFile.size === file.size &&
+            existingFile.lastModified === file.lastModified
+          );
         });
+
+        if (!alreadyAdded) {
+          selectedGalleryFiles.push(file);
+        }
       });
 
-      if (lbClose) lbClose.addEventListener("click", closeLightbox);
-      if (lbPrev) lbPrev.addEventListener("click", () => stepLightbox(-1));
-      if (lbNext) lbNext.addEventListener("click", () => stepLightbox(1));
+      updateGalleryInputFiles();
+      renderUploadedFiles();
+    });
+  }
 
-      lightbox.addEventListener("click", (e) => {
-        if (e.target === lightbox) closeLightbox();
+  const pricesYes = $("pricesYes");
+  const pricesNo = $("pricesNo");
+  const pricesArea = $("pricesArea");
+  const addPriceBtn = $("addPriceBtn");
+
+  function showPricesArea() {
+    if (!pricesArea) return;
+
+    pricesArea.classList.add("open");
+  }
+
+  function hidePricesArea() {
+    if (!pricesArea) return;
+
+    pricesArea.classList.remove("open");
+
+    const rows = pricesArea.querySelectorAll(".price-input-row");
+
+    rows.forEach((row, index) => {
+      const input = row.querySelector("input");
+
+      if (index === 0 && input) {
+        input.value = "";
+      }
+
+      if (index > 0) {
+        row.remove();
+      }
+    });
+  }
+
+  if (pricesYes) {
+    pricesYes.addEventListener("change", () => {
+      if (pricesYes.checked) {
+        showPricesArea();
+      }
+    });
+  }
+
+  if (pricesNo) {
+    pricesNo.addEventListener("change", () => {
+      if (pricesNo.checked) {
+        hidePricesArea();
+      }
+    });
+  }
+
+  if (addPriceBtn && pricesArea) {
+    addPriceBtn.addEventListener("click", () => {
+      const rows = pricesArea.querySelectorAll(".price-input-row");
+
+      if (rows.length >= 20) return;
+
+      const row = document.createElement("div");
+      row.className = "price-input-row";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = "prices[]";
+      input.placeholder = "Example: Service - $50";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Remove";
+
+      button.addEventListener("click", () => {
+        row.remove();
       });
 
-      window.addEventListener("keydown", (e) => {
-        if (!lightbox.classList.contains("open")) return;
-        if (e.key === "Escape") closeLightbox();
-        if (e.key === "ArrowLeft") stepLightbox(-1);
-        if (e.key === "ArrowRight") stepLightbox(1);
-      });
-    }
+      row.appendChild(input);
+      row.appendChild(button);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in");
-            observer.unobserve(entry.target);
+      pricesArea.appendChild(row);
+    });
+  }
+
+  const websiteApplicationForm = $("websiteApplicationForm");
+  const applicationStatus = $("applicationStatus");
+  const submitButton = document.querySelector(".application-submit");
+
+  if (websiteApplicationForm && applicationStatus) {
+    websiteApplicationForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      applicationStatus.textContent = "Submitting application...";
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Submitting...";
+      }
+
+      updateGalleryInputFiles();
+
+      const formData = new FormData(websiteApplicationForm);
+
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/website-application",
+          {
+            method: "POST",
+            body: formData
           }
-        });
-      },
-      { threshold: 0.15 }
-    );
+        );
 
-    document.querySelectorAll(".reveal,.slide-left,.slide-right").forEach((el) => observer.observe(el));
-  };
+        const result = await response.json();
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Submission failed");
+        }
+
+        applicationStatus.textContent =
+          "Application submitted successfully. We will contact you within 24 hours.";
+
+        websiteApplicationForm.reset();
+
+        selectedGalleryFiles = [];
+
+        if (galleryPhotosPreview) {
+          galleryPhotosPreview.innerHTML = "";
+        }
+
+        hidePricesArea();
+      } catch (error) {
+        applicationStatus.textContent =
+          "There was a problem submitting the application. Please try again.";
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "Submit Application";
+        }
+      }
+    });
+  }
+
+  const footerInquiryForm = $("footerInquiryForm");
+  const inqBtn = $("inqBtn");
+  const inqStatus = $("inqStatus");
+
+  if (footerInquiryForm && inqStatus) {
+    footerInquiryForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      setStatus(inqStatus, "Sending...", false);
+      setBtn(inqBtn, true, "Sending...");
+
+      const formData = new FormData(footerInquiryForm);
+
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/footer-inquiry",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Inquiry failed");
+        }
+
+        footerInquiryForm.reset();
+
+        setStatus(
+          inqStatus,
+          "Sent. We will reach out shortly.",
+          true
+        );
+      } catch (error) {
+        setStatus(
+          inqStatus,
+          "Could not send. Please try again.",
+          false
+        );
+      } finally {
+        setBtn(inqBtn, false, "Send");
+      }
+    });
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      threshold: 0.15
+    }
+  );
+
+  document
+    .querySelectorAll(".reveal,.slide-left,.slide-right")
+    .forEach((el) => {
+      observer.observe(el);
+    });
 })();
-
 
 
 
