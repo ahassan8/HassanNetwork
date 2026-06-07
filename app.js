@@ -3,25 +3,23 @@
 
   const $ = (id) => document.getElementById(id);
 
-const templatePhotos = {
-  template1: [
-    "images/herotemp.png",
-    "images/herotemp.png",
-    "images/herotemp.png"
-  ],
-
-  template2: [
-    "images/paintingtemp.png",
-    "images/paintingtemp.png",
-    "images/paintingtemp.png"
-  ],
-
-  template3: [
-    "images/painttemp2.png",
-    "images/painttemp2.png",
-    "images/painttemp2.png"
-  ]
-};
+  const templatePhotos = {
+    template1: [
+      "images/herotemp.png",
+      "images/herotemp.png",
+      "images/herotemp.png"
+    ],
+    template2: [
+      "images/paintingtemp.png",
+      "images/paintingtemp.png",
+      "images/paintingtemp.png"
+    ],
+    template3: [
+      "images/painttemp2.png",
+      "images/painttemp2.png",
+      "images/painttemp2.png"
+    ]
+  };
 
   const setStatus = (el, text, isSuccess) => {
     if (!el) return;
@@ -101,123 +99,101 @@ const templatePhotos = {
       if (!target) return;
 
       event.preventDefault();
+
       closeMobileNav();
       scrollToId(id);
     });
   });
 
-  const slideshow = document.createElement("div");
-  slideshow.className = "template-lightbox";
-  slideshow.innerHTML = `
-    <div class="template-lightbox-backdrop"></div>
-    <div class="template-lightbox-box">
-      <button class="template-lightbox-close" type="button">×</button>
-      <button class="template-lightbox-arrow template-lightbox-prev" type="button">‹</button>
-      <img class="template-lightbox-img" src="" alt="Template preview">
-      <button class="template-lightbox-arrow template-lightbox-next" type="button">›</button>
-    </div>
-  `;
+  const templateLightbox = $("templateLightbox");
+  const templateLbImg = $("templateLbImg");
+  const templateLbClose = $("templateLbClose");
+  const templateLbPrev = $("templateLbPrev");
+  const templateLbNext = $("templateLbNext");
 
-  document.body.appendChild(slideshow);
+  let activeTemplateImages = [];
+  let activeTemplateIndex = 0;
 
-  const slideshowImg = slideshow.querySelector(".template-lightbox-img");
-  const slideshowClose = slideshow.querySelector(".template-lightbox-close");
-  const slideshowPrev = slideshow.querySelector(".template-lightbox-prev");
-  const slideshowNext = slideshow.querySelector(".template-lightbox-next");
-  const slideshowBackdrop = slideshow.querySelector(".template-lightbox-backdrop");
+  function showTemplateSlide() {
+    if (!templateLbImg || !activeTemplateImages.length) return;
 
-  let currentSlides = [];
-  let currentSlideIndex = 0;
-
-  function showSlide() {
-    if (!slideshowImg || !currentSlides.length) return;
-    slideshowImg.src = currentSlides[currentSlideIndex];
+    templateLbImg.src = activeTemplateImages[activeTemplateIndex];
   }
 
-  function openSlideshow(images, startIndex = 0) {
-    if (!images || !images.length) return;
+  function openTemplateLightbox(templateKey, index = 0) {
+    if (!templateLightbox || !templatePhotos[templateKey]) return;
 
-    currentSlides = images;
-    currentSlideIndex = startIndex;
-    showSlide();
+    activeTemplateImages = templatePhotos[templateKey];
+    activeTemplateIndex = index;
+    showTemplateSlide();
 
-    slideshow.classList.add("open");
+    templateLightbox.classList.add("open");
+    templateLightbox.setAttribute("aria-hidden", "false");
     document.body.classList.add("lightbox-open");
   }
 
-  function closeSlideshow() {
-    slideshow.classList.remove("open");
+  function closeTemplateLightbox() {
+    if (!templateLightbox) return;
+
+    templateLightbox.classList.remove("open");
+    templateLightbox.setAttribute("aria-hidden", "true");
     document.body.classList.remove("lightbox-open");
   }
 
-  function nextSlide() {
-    if (!currentSlides.length) return;
-    currentSlideIndex = (currentSlideIndex + 1) % currentSlides.length;
-    showSlide();
+  function nextTemplateSlide() {
+    if (!activeTemplateImages.length) return;
+
+    activeTemplateIndex = (activeTemplateIndex + 1) % activeTemplateImages.length;
+    showTemplateSlide();
   }
 
-  function prevSlide() {
-    if (!currentSlides.length) return;
-    currentSlideIndex =
-      (currentSlideIndex - 1 + currentSlides.length) % currentSlides.length;
-    showSlide();
+  function prevTemplateSlide() {
+    if (!activeTemplateImages.length) return;
+
+    activeTemplateIndex =
+      (activeTemplateIndex - 1 + activeTemplateImages.length) %
+      activeTemplateImages.length;
+
+    showTemplateSlide();
   }
 
-  if (slideshowClose) slideshowClose.addEventListener("click", closeSlideshow);
-  if (slideshowBackdrop) slideshowBackdrop.addEventListener("click", closeSlideshow);
-  if (slideshowNext) slideshowNext.addEventListener("click", nextSlide);
-  if (slideshowPrev) slideshowPrev.addEventListener("click", prevSlide);
+  document
+    .querySelectorAll(".template-preview, .more-photos-btn, .more-photos")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const templateKey = button.dataset.template;
+        const index = Number(button.dataset.index || 0);
+
+        openTemplateLightbox(templateKey, index);
+      });
+    });
+
+  if (templateLbClose) {
+    templateLbClose.addEventListener("click", closeTemplateLightbox);
+  }
+
+  if (templateLbNext) {
+    templateLbNext.addEventListener("click", nextTemplateSlide);
+  }
+
+  if (templateLbPrev) {
+    templateLbPrev.addEventListener("click", prevTemplateSlide);
+  }
+
+  if (templateLightbox) {
+    templateLightbox.addEventListener("click", (event) => {
+      if (event.target === templateLightbox) {
+        closeTemplateLightbox();
+      }
+    });
+  }
 
   document.addEventListener("keydown", (event) => {
-    if (!slideshow.classList.contains("open")) return;
+    if (!templateLightbox || !templateLightbox.classList.contains("open")) return;
 
-    if (event.key === "Escape") closeSlideshow();
-    if (event.key === "ArrowRight") nextSlide();
-    if (event.key === "ArrowLeft") prevSlide();
-  });
-
-  function getTemplateKey(el) {
-    const card = el.closest("[data-template]");
-    const value =
-      el.dataset.template ||
-      el.dataset.templateKey ||
-      (card ? card.dataset.template : "") ||
-      "";
-
-    if (templatePhotos[value]) return value;
-
-    const text = (el.textContent || "").toLowerCase();
-
-    if (text.includes("1")) return "template1";
-    if (text.includes("2")) return "template2";
-    if (text.includes("3")) return "template3";
-
-    const index = Array.from(document.querySelectorAll(".template-card, [data-template]")).indexOf(card);
-
-    if (index === 0) return "template1";
-    if (index === 1) return "template2";
-    if (index === 2) return "template3";
-
-    return "template1";
-  }
-
-  document.querySelectorAll(".template-more, .more-photos, [data-more-photos]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const key = getTemplateKey(button);
-      openSlideshow(templatePhotos[key], 0);
-    });
-  });
-
-  document.querySelectorAll(".template-card img, .template-preview img, [data-template-image]").forEach((img) => {
-    img.style.cursor = "pointer";
-
-    img.addEventListener("click", () => {
-      const key = getTemplateKey(img);
-      const images = templatePhotos[key];
-      const index = images.findIndex((src) => img.src.includes(src));
-
-      openSlideshow(images, index >= 0 ? index : 0);
-    });
+    if (event.key === "Escape") closeTemplateLightbox();
+    if (event.key === "ArrowRight") nextTemplateSlide();
+    if (event.key === "ArrowLeft") prevTemplateSlide();
   });
 
   const galleryPhotosInput = $("galleryPhotos");
@@ -350,6 +326,7 @@ const templatePhotos = {
 
       deleteButton.addEventListener("click", () => {
         selectedGalleryFiles.splice(index, 1);
+
         updateGalleryInputFiles();
         renderUploadedFiles();
       });
@@ -395,6 +372,7 @@ const templatePhotos = {
 
   function showPricesArea() {
     if (!pricesArea) return;
+
     pricesArea.classList.add("open");
   }
 
@@ -420,13 +398,17 @@ const templatePhotos = {
 
   if (pricesYes) {
     pricesYes.addEventListener("change", () => {
-      if (pricesYes.checked) showPricesArea();
+      if (pricesYes.checked) {
+        showPricesArea();
+      }
     });
   }
 
   if (pricesNo) {
     pricesNo.addEventListener("change", () => {
-      if (pricesNo.checked) hidePricesArea();
+      if (pricesNo.checked) {
+        hidePricesArea();
+      }
     });
   }
 
@@ -494,6 +476,7 @@ const templatePhotos = {
           "Application submitted successfully. We will contact you within 24 hours.";
 
         websiteApplicationForm.reset();
+
         selectedGalleryFiles = [];
 
         if (galleryPhotosPreview) {
@@ -569,7 +552,6 @@ const templatePhotos = {
       observer.observe(el);
     });
 })();
-
 
 
 
