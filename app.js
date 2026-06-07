@@ -1,4 +1,6 @@
 (() => {
+  const API_BASE = "http://134.122.23.190:3000";
+
   const $ = (id) => document.getElementById(id);
 
   const setStatus = (el, text, isSuccess) => {
@@ -133,10 +135,7 @@
       const deleteButton = document.createElement("button");
       deleteButton.className = "uploaded-file-delete";
       deleteButton.type = "button";
-      deleteButton.setAttribute(
-        "aria-label",
-        `Remove ${file.name}`
-      );
+      deleteButton.setAttribute("aria-label", `Remove ${file.name}`);
       deleteButton.textContent = "🗑";
 
       deleteButton.addEventListener("click", () => {
@@ -273,13 +272,10 @@
       const formData = new FormData(websiteApplicationForm);
 
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/website-application",
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+        const response = await fetch(`${API_BASE}/api/website-application`, {
+          method: "POST",
+          body: formData
+        });
 
         const result = await response.json();
 
@@ -325,13 +321,10 @@
       const formData = new FormData(footerInquiryForm);
 
       try {
-        const response = await fetch(
-          "http://localhost:3000/api/footer-inquiry",
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+        const response = await fetch(`${API_BASE}/api/footer-inquiry`, {
+          method: "POST",
+          body: formData
+        });
 
         const result = await response.json();
 
