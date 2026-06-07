@@ -3,11 +3,25 @@
 
   const $ = (id) => document.getElementById(id);
 
-  const templatePhotos = {
-    template1: ["Herotemp.png", "paintingtemp.png", "painttemp2.png"],
-    template2: ["paintingtemp.png", "painttemp2.png", "Herotemp.png"],
-    template3: ["painttemp2.png", "Herotemp.png", "paintingtemp.png"]
-  };
+const templatePhotos = {
+  template1: [
+    "images/Herotemp.png",
+    "images/Herotemp.png",
+    "images/Herotemp.png"
+  ],
+
+  template2: [
+    "images/paintingtemp.png",
+    "images/paintingtemp.png",
+    "images/paintingtemp.png"
+  ],
+
+  template3: [
+    "images/painttemp2.png",
+    "images/painttemp2.png",
+    "images/painttemp2.png"
+  ]
+};
 
   const setStatus = (el, text, isSuccess) => {
     if (!el) return;
