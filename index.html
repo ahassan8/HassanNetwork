@@ -83,7 +83,7 @@
       <div class="wrap">
         <h2>Website Setup Form</h2>
         <p>
-          Fill out the form below so we can collect your business information, photos, hours, and template choice.
+          Fill out the form below so we can collect your business information, photos, hours, and details.
           This helps us build a clean website tailored to your business. The total cost is $45, and we will respond within 24 hours after submission.
         </p>
       </div>
@@ -175,7 +175,7 @@
             </div>
           </div>
 
-<div class="app-card">
+          <div class="app-card">
             <h3>Hours Of Operation</h3>
 
             <div class="hours-two-column">
@@ -256,64 +256,29 @@
           </div>
 
           <div class="app-card">
-            <h3>Choose Website Template Design</h3>
+            <h3>Website Design Gallery</h3>
 
             <p class="app-note">
-              Pick the website style you want. You can open more pictures for each template before choosing.
+              Here are a few sample website designs. These are examples only, so you do not need to choose one.
             </p>
 
-            <div class="template-choice-grid">
-              <div class="template-choice" data-template="template1">
-                <button class="template-preview" type="button" data-template="template1" data-index="0" aria-label="Open Template 1 preview">
-                  <img src="images/herotemp.png" alt="Template 1 preview" />
-                </button>
+            <div class="design-gallery-grid">
+              <button class="design-gallery-item" type="button" data-gallery-index="0" aria-label="Open design gallery image 1">
+                <img src="images/herobarber.png" alt="Barber website design preview" />
+              </button>
 
-                <div class="template-bottom">
-                  <label class="template-radio">
-                    <input type="radio" name="selected_template" value="Template 1" required />
-                    <span>Template 1</span>
-                  </label>
+              <button class="design-gallery-item" type="button" data-gallery-index="1" aria-label="Open design gallery image 2">
+                <img src="images/herofence.png" alt="Fence website design preview" />
+              </button>
 
-                  <button class="more-photos more-photos-btn" type="button" data-template="template1" data-index="0">
-                    More Photos
-                  </button>
-                </div>
-              </div>
-
-              <div class="template-choice" data-template="template2">
-                <button class="template-preview" type="button" data-template="template2" data-index="0" aria-label="Open Template 2 preview">
-                  <img src="images/paintingtemp.png" alt="Template 2 preview" />
-                </button>
-
-                <div class="template-bottom">
-                  <label class="template-radio">
-                    <input type="radio" name="selected_template" value="Template 2" />
-                    <span>Template 2</span>
-                  </label>
-
-                  <button class="more-photos more-photos-btn" type="button" data-template="template2" data-index="0">
-                    More Photos
-                  </button>
-                </div>
-              </div>
-
-              <div class="template-choice" data-template="template3">
-                <button class="template-preview" type="button" data-template="template3" data-index="0" aria-label="Open Template 3 preview">
-                  <img src="images/painttemp2.png" alt="Template 3 preview" />
-                </button>
-
-                <div class="template-bottom">
-                  <label class="template-radio">
-                    <input type="radio" name="selected_template" value="Template 3" />
-                    <span>Template 3</span>
-                  </label>
-
-                  <button class="more-photos more-photos-btn" type="button" data-template="template3" data-index="0">
-                    More Photos
-                  </button>
-                </div>
-              </div>
+              <button class="design-gallery-item" type="button" data-gallery-index="2" aria-label="Open design gallery image 3">
+                <img src="images/herolawn.png" alt="Lawn website design preview" />
+              </button>
             </div>
+
+            <button class="design-more-photos-btn" id="designMorePhotosBtn" type="button">
+              More Photos
+            </button>
           </div>
 
           <div class="app-card">
@@ -418,21 +383,15 @@
     </div>
   </footer>
 
-  <div class="lightbox" id="templateLightbox" aria-hidden="true">
-    <div class="lightbox-inner" role="dialog" aria-modal="true" aria-label="Template preview">
-      <button class="lb-close" id="templateLbClose" type="button" aria-label="Close">×</button>
-      <button class="lb-nav lb-prev" id="templateLbPrev" type="button" aria-label="Previous">‹</button>
-      <img class="lb-img" id="templateLbImg" alt="Template preview" />
-      <button class="lb-nav lb-next" id="templateLbNext" type="button" aria-label="Next">›</button>
+  <div class="lightbox" id="designLightbox" aria-hidden="true">
+    <div class="lightbox-inner" role="dialog" aria-modal="true" aria-label="Design gallery preview">
+      <button class="lb-close" id="designLbClose" type="button" aria-label="Close">×</button>
+      <button class="lb-nav lb-prev" id="designLbPrev" type="button" aria-label="Previous">‹</button>
+      <img class="lb-img" id="designLbImg" alt="Design gallery preview" />
+      <button class="lb-nav lb-next" id="designLbNext" type="button" aria-label="Next">›</button>
     </div>
   </div>
 
   <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
