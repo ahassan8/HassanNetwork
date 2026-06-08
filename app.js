@@ -196,6 +196,39 @@
     if (event.key === "ArrowLeft") prevTemplateSlide();
   });
 
+  document.querySelectorAll(".clock-only").forEach((input) => {
+    const updateTimeState = () => {
+      if (input.value) {
+        input.classList.add("has-time");
+      } else {
+        input.classList.remove("has-time");
+      }
+    };
+
+    input.addEventListener("click", () => {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+      }
+    });
+
+    input.addEventListener("focus", () => {
+      if (typeof input.showPicker === "function") {
+        try {
+          input.showPicker();
+        } catch (error) {
+          input.focus();
+        }
+      }
+    });
+
+    input.addEventListener("change", updateTimeState);
+    input.addEventListener("input", updateTimeState);
+
+    updateTimeState();
+  });
+
   const galleryPhotosInput = $("galleryPhotos");
   const galleryPhotosPreview = $("galleryPhotosPreview");
 
@@ -484,6 +517,10 @@
         }
 
         hidePricesArea();
+
+        document.querySelectorAll(".clock-only").forEach((input) => {
+          input.classList.remove("has-time");
+        });
       } catch (error) {
         applicationStatus.textContent =
           "There was a problem submitting the application. Please try again.";
@@ -552,6 +589,4 @@
       observer.observe(el);
     });
 })();
-
-
 
