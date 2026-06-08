@@ -630,29 +630,3 @@
     font-size:32px;
   }
 }
-
-.business-hour-row{
-  display:grid;
-  grid-template-columns:82px 78px 96px 96px;
-  gap:7px;
-  align-items:center;
-}
-
-@media (max-width: 720px){
-  .business-hour-row{
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-  }
-
-  .day-name{
-    grid-column:1/-1;
-    margin-bottom:2px;
-  }
-
-  .business-hour-row select,
-  .business-hour-row input{
-    width:100%;
-    height:42px;
-    min-width:0;
-  }
-}
