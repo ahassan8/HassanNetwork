@@ -260,8 +260,8 @@
 
     const image = await fileToImage(file);
 
-    const maxWidth = 1400;
-    const maxHeight = 1400;
+    const maxWidth = 900;
+    const maxHeight = 900;
 
     let width = image.width;
     let height = image.height;
@@ -280,7 +280,7 @@
     context.drawImage(image, 0, 0, width, height);
 
     const blob = await new Promise((resolve) => {
-      canvas.toBlob(resolve, "image/jpeg", 0.72);
+      canvas.toBlob(resolve, "image/jpeg", 0.38);
     });
 
     if (!blob) return file;
@@ -341,7 +341,7 @@
 
       const size = document.createElement("span");
       size.className = "uploaded-file-size";
-      size.textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB`;
+      size.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
 
       const deleteButton = document.createElement("button");
       deleteButton.className = "uploaded-file-delete";
