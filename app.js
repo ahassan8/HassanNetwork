@@ -260,8 +260,8 @@
 
     const image = await fileToImage(file);
 
-    const maxWidth = 900;
-    const maxHeight = 900;
+    const maxWidth = 700;
+    const maxHeight = 700;
 
     let width = image.width;
     let height = image.height;
@@ -280,7 +280,7 @@
     context.drawImage(image, 0, 0, width, height);
 
     const blob = await new Promise((resolve) => {
-      canvas.toBlob(resolve, "image/jpeg", 0.38);
+      canvas.toBlob(resolve, "image/jpeg", 0.22);
     });
 
     if (!blob) return file;
