@@ -464,3 +464,13 @@
     text-align:center;
   }
 }
+
+@media (max-width:720px){
+  .hours-two-column{
+    column-gap:18px;
+  }
+
+  .business-hour-row input[type="time"]{
+    width:92%;
+  }
+}
