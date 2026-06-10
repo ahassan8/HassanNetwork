@@ -452,3 +452,56 @@
     text-align:center;
   }
 }
+
+@media (max-width:720px){
+  .business-hour-row{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+    width:100%;
+  }
+
+  .business-hour-row select,
+  .business-hour-row input[type="time"]{
+    width:180px;
+    max-width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    height:34px;
+    padding:0 8px;
+    font-size:13px;
+    display:block;
+  }
+
+  .clock-only{
+    color:transparent;
+    text-align:center;
+    cursor:pointer;
+  }
+
+  .clock-only::-webkit-datetime-edit,
+  .clock-only::-webkit-datetime-edit-fields-wrapper{
+    color:transparent;
+  }
+
+  .clock-only::-webkit-calendar-picker-indicator{
+    opacity:1;
+    display:block;
+    visibility:visible;
+    cursor:pointer;
+    width:18px;
+    height:18px;
+    margin:0 auto;
+    transform:none;
+  }
+
+  .clock-only.has-time{
+    color:#111827;
+  }
+
+  .clock-only.has-time::-webkit-datetime-edit,
+  .clock-only.has-time::-webkit-datetime-edit-fields-wrapper{
+    color:#111827;
+  }
+}
