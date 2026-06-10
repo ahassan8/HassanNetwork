@@ -15,6 +15,22 @@
     if (typeof text === "string") btn.textContent = text;
   };
 
+  const successModal = $("successModal");
+  const successModalOk = $("successModalOk");
+
+  function openSuccessModal() {
+    if (!successModal) return;
+    successModal.classList.add("open");
+    successModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  if (successModalOk) {
+    successModalOk.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
+
   const yearEl = $("year");
 
   if (yearEl) {
@@ -296,7 +312,6 @@
 
   function showPricesArea() {
     if (!pricesArea) return;
-
     pricesArea.classList.add("open");
   }
 
@@ -412,6 +427,8 @@
         document.querySelectorAll(".clock-only").forEach((input) => {
           input.classList.remove("has-time");
         });
+
+        openSuccessModal();
       } catch (error) {
         applicationStatus.textContent =
           "There was a problem submitting the application. Please try again.";
