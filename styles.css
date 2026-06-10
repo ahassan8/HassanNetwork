@@ -712,3 +712,62 @@ main{background:#fff}
     width:min(92%,100%);
   }
 }
+
+
+.success-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  padding:20px;
+}
+
+.success-modal.open{
+  display:flex;
+}
+
+.success-modal-box{
+  width:min(420px,100%);
+  background:#fff;
+  padding:34px 28px;
+  text-align:center;
+  border:1px solid rgba(15,23,42,.10);
+}
+
+.success-modal-box h3{
+  font-family:"Roboto",sans-serif;
+  font-size:24px;
+  color:#111827;
+  margin-bottom:14px;
+}
+
+.success-modal-box p{
+  font-size:14px;
+  line-height:1.7;
+  color:rgba(15,23,42,.72);
+  margin-bottom:24px;
+}
+
+.success-modal-box button{
+  border:1px solid rgba(15,23,42,.18);
+  background:var(--accent);
+  color:#111;
+  height:46px;
+  padding:0 34px;
+  font-size:13px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  cursor:pointer;
+}
+
+.success-modal-box button:hover{
+  filter:brightness(1.03);
+}
+
+.modal-open{
+  overflow:hidden;
+}
